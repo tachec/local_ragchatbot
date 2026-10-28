@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f7f4">
+  <meta name="description" content="知源 · 本地知识库 RAG 问答助手">
+  <title>知源 · 本地知识库助手</title>
+  <script>
+    try {
+      const saved = localStorage.getItem('zhiyuan-theme');
+      if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    } catch (e) {}
+  </script>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-logo" viewBox="0 0 32 32">
+      <rect x="3" y="3" width="26" height="26" rx="9" fill="currentColor" opacity=".12"/>
+      <path d="M9 11.4c2.6-1.3 4.8-1.3 7 0v10.9c-2.2-1.3-4.4-1.3-7 0V11.4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M16 11.4c2.2-1.3 4.4-1.3 7 0v10.9c-2.6-1.3-4.8-1.3-7 0V11.4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M22.6 7.7l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.4"/><path d="m16 16 4.2 4.2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4.5 5.8c0-.9.7-1.6 1.6-1.6h4.1c.9 0 1.6.7 1.6 1.6v14.4c-.9-1-2-1.5-3.5-1.5H6.1c-.9 0-1.6-.7-1.6-1.6V5.8Z"/><path d="M19.5 5.8c0-.9-.7-1.6-1.6-1.6h-4.1c-.9 0-1.6.7-1.6 1.6v14.4c.9-1 2-1.5 3.5-1.5h2.2c.9 0 1.6-.7 1.6-1.6V5.8Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.3 4.3l1.4 1.4M18.3 18.3l1.4 1.4M2.5 12h2M19.5 12h2M4.3 19.7l1.4-1.4M18.3 5.7l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.2 14.1A8.2 8.2 0 0 1 9.9 3.8 8.3 8.3 0 1 0 20.2 14.1Z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m20.5 11.5-8.1 8.1a6 6 0 0 1-8.5-8.5l8.8-8.8a4 4 0 0 1 5.7 5.7l-8.9 8.9a2 2 0 0 1-2.8-2.8l8.2-8.2"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4.8c0-.4.4-.8.8-.8h4.4c.4 0 .8.4.8.8V7M6.5 7l.8 12.2c0 .5.4.8.9.8h7.6c.5 0 .9-.3.9-.8L17.5 7M10 11v5M14 11v5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5v-2c0-1.1-.9-2-2-2h-7c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2h2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3.5h7l5 5v12H6v-17Z"/><path d="M13 3.5v5h5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.5"/><path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4.5 15.5v3c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2v-3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.2c0 4.2-2.8 7.5-7 9.3-4.2-1.8-7-5.1-7-9.3V6l7-2.5Z"/><path d="m9 11.8 2 2 4-4.2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10" width="15" height="10.5" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3.5l1.5 4.2 4.2 1.5-4.2 1.5L12 15l-1.5-4.3-4.2-1.5 4.2-1.5L12 3.5Z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M20.5 11.5a7.7 7.7 0 0 1-8.1 7.7c-1 0-2-.2-2.9-.6L4.5 20l1.4-4.7a7.7 7.7 0 1 1 14.6-3.8Z"/><path d="M8.5 10.5h7M8.5 14h4.5"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M9.5 14.5 14.5 9.5"/><path d="M10.5 6.5 12 5a4.2 4.2 0 0 1 6 6l-1.5 1.5M13.5 17.5 12 19a4.2 4.2 0 0 1-6-6l1.5-1.5"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10M19 5l-7.5 7.5"/><path d="M18 14v4.5c0 .8-.7 1.5-1.5 1.5h-11c-.8 0-1.5-.7-1.5-1.5v-11c0-.8.7-1.5 1.5-1.5H10"/></symbol>
+    <symbol id="i-compare" viewBox="0 0 24 24"><path d="M7 4.5v15M17 4.5v15M4.5 8H9.5M14.5 8H19.5M4.5 16H9.5M14.5 16H19.5"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><path d="M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 9A8 8 0 0 0 5.7 6.7L4 8.5M4 4.5v4h4M4.5 15A8 8 0 0 0 18.3 17.3L20 15.5M20 19.5v-4h-4"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="会话列表">
+      <div class="sidebar-top">
+        <a class="brand" href="/" id="brand-link" aria-label="知源首页">
+          <span class="brand-mark"><svg class="icon logo-icon"><use href="#i-logo"></use></svg></span>
+          <span class="brand-copy">
+            <strong>知源</strong>
+            <small>本地知识库助手</small>
+          </span>
+        </a>
+        <button class="icon-btn sidebar-close mobile-only" id="sidebar-close" type="button" aria-label="关闭会话列表">
+          <svg class="icon"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+
+      <button class="new-chat-btn" id="new-chat-btn" type="button">
+        <span class="new-chat-icon"><svg class="icon"><use href="#i-plus"></use></svg></span>
+        <span>新对话</span>
+        <kbd class="shortcut">Ctrl K</kbd>
+      </button>
+
+      <label class="search-box" for="session-search">
+        <svg class="icon"><use href="#i-search"></use></svg>
+        <input id="session-search" type="search" placeholder="搜索对话" autocomplete="off" spellcheck="false">
+        <button class="search-clear" id="search-clear" type="button" hidden aria-label="清除搜索"><svg class="icon"><use href="#i-close"></use></svg></button>
+      </label>
+
+      <nav class="session-nav" aria-label="最近对话">
+        <div class="nav-heading">
+          <span>最近对话</span>
+          <span class="nav-count" id="session-count"></span>
+        </div>
+        <div class="session-list" id="session-list"></div>
+        <div class="session-empty" id="session-empty" hidden>
+          <svg class="icon"><use href="#i-message"></use></svg>
+          <span>还没有对话</span>
+          <small>发送第一条消息，开始记录</small>
+        </div>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button class="kb-entry" id="kb-open-btn" type="button">
+          <span class="kb-entry-icon"><svg class="icon"><use href="#i-book"></use></svg></span>
+          <span class="kb-entry-copy">
+            <strong>知识库</strong>
+            <small id="kb-entry-meta">还没有资料</small>
+          </span>
+          <svg class="icon chevron"><use href="#i-chevron-right"></use></svg>
+        </button>
+
+        <div class="profile">
+          <div class="avatar" id="user-avatar">访</div>
+          <div class="profile-copy">
+            <strong id="user-label">本地访客</strong>
+            <small id="user-id">ID · --------</small>
+          </div>
+          <button class="icon-btn theme-toggle" id="theme-btn-side" type="button" aria-label="切换明暗主题" title="切换明暗主题">
+            <svg class="icon"><use href="#i-moon"></use></svg>
+          </button>
+        </div>
+        <div class="local-note"><svg class="icon"><use href="#i-shield"></use></svg><span>数据仅保存在本机</span></div>
+      </div>
+    </aside>
+
+    <div class="scrim" id="sidebar-scrim" hidden></div>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn mobile-only" id="menu-btn" type="button" aria-label="打开会话列表">
+          <svg class="icon"><use href="#i-menu"></use></svg>
+        </button>
+        <div class="topbar-copy">
+          <h1 id="chat-title">新对话</h1>
+          <p id="chat-status"><span class="status-dot"></span><span id="chat-status-text">知识库就绪</span></p>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-btn kb-top-btn" id="kb-open-btn-top" type="button">
+            <svg class="icon"><use href="#i-book"></use></svg>
+            <span>知识库</span>
+            <span class="badge" id="kb-count-badge">0</span>
+          </button>
+          <button class="icon-btn" id="theme-btn-top" type="button" aria-label="切换明暗主题" title="切换明暗主题">
+            <svg class="icon"><use href="#i-moon"></use></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="chat-scroll" id="chat-scroll">
+        <div class="chat-column">
+          <section class="welcome" id="welcome">
+            <div class="hero-mark"><svg class="icon logo-icon"><use href="#i-logo"></use></svg></div>
+            <p class="eyebrow">LOCAL KNOWLEDGE · RAG</p>
+            <h2>你好，我是知源</h2>
+            <p class="hero-copy">把资料交给我，我会从中寻找答案，<br class="desktop-only">并把每一条依据标出来。</p>
+            <div class="hero-meta" id="hero-meta">
+              <span class="hero-meta-dot"></span>
+              <span id="hero-meta-text">正在连接知识库…</span>
+            </div>
+            <div class="suggestions" id="suggestions"></div>
+            <p class="hero-foot"><svg class="icon"><use href="#i-shield"></use></svg>本地运行 · 你的资料不会离开这台设备</p>
+          </section>
+
+          <div class="messages" id="messages" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="composer-area">
+        <div class="composer-shell">
+          <div class="composer" id="composer">
+            <div class="attachment-tray" id="attachment-tray" hidden></div>
+            <textarea id="composer-input" rows="1" maxlength="4000" placeholder="给知源发消息… 可附加文本或图片" aria-label="输入消息"></textarea>
+            <div class="composer-bar">
+              <div class="attach-tools">
+                <button class="attach-tool" id="text-file-btn" type="button"
+                        aria-label="上传文本文件" title="上传文本文件，解析后随消息发送给模型">
+                  <svg class="icon"><use href="#i-file"></use></svg>
+                  <span>文本</span>
+                </button>
+                <button class="attach-tool" id="image-file-btn" type="button"
+                        aria-label="上传图片并检索知识库" title="上传图片，解析后检索知识库并发送给模型">
+                  <svg class="icon"><use href="#i-image"></use></svg>
+                  <span>图片</span>
+                </button>
+              </div>
+              <span class="composer-grow"></span>
+              <span class="char-count" id="char-count"></span>
+              <button class="send-btn stop-btn" id="stop-btn" type="button" aria-label="停止生成" title="停止生成" hidden>
+                <svg class="icon"><use href="#i-stop"></use></svg>
+              </button>
+              <button class="send-btn" id="send-btn" type="button" aria-label="发送消息" title="发送消息" disabled>
+                <svg class="icon"><use href="#i-arrow-up"></use></svg>
+              </button>
+            </div>
+            <input type="file" id="text-file-input" multiple hidden
+                   accept=".txt,.md,.markdown,.csv,.json,.log,.yaml,.yml,.xml,.html,.css,.js,.ts,.py,.java,.c,.cpp,.h,.sql,.ini,.conf,text/plain,text/markdown,application/json">
+            <input type="file" id="image-file-input" multiple hidden
+                   accept="image/png,image/jpeg,image/webp,image/bmp,image/gif">
+          </div>
+          <div class="composer-foot">
+            <span class="hint"><kbd>Enter</kbd> 发送<span class="dot">·</span><kbd>Shift</kbd><span class="plus">+</span><kbd>Enter</kbd> 换行</span>
+            <span class="foot-note"><svg class="icon"><use href="#i-lock"></use></svg>附件随消息发送并参与检索，不写入知识库</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="scroll-bottom" id="scroll-bottom" type="button" aria-label="回到底部" title="回到底部" hidden>
+        <svg class="icon"><use href="#i-arrow-down"></use></svg>
+      </button>
+    </main>
+
+    <div class="scrim scrim-dark" id="kb-scrim" hidden></div>
+
+    <aside class="kb-panel" id="kb-panel" aria-label="知识库管理" aria-hidden="true">
+      <div class="kb-head">
+        <div>
+          <p class="eyebrow">LIBRARY</p>
+          <h2>知识库</h2>
+        </div>
+        <button class="icon-btn" id="kb-close-btn" type="button" aria-label="关闭知识库">
+          <svg class="icon"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+      <p class="kb-sub">上传 PDF、Markdown、TXT 或图片。解析完成后，我会优先从这些资料中回答，并标注引用位置。</p>
+
+      <div class="kb-stats">
+        <div><strong id="stat-docs">0</strong><span>份资料</span></div>
+        <div><strong id="stat-chunks">0</strong><span>个片段</span></div>
+        <div><strong class="stat-ok" id="stat-status">就绪</strong><span>服务状态</span></div>
+      </div>
+
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="上传资料">
+        <div class="drop-icon"><svg class="icon"><use href="#i-upload"></use></svg></div>
+        <strong>把文件拖到这里</strong>
+        <span>或 <button class="link-btn" id="browse-btn" type="button">选择文件</button></span>
+        <small>支持 PDF · Markdown · TXT · 图片，单个最大 50 MB</small>
+        <input type="file" id="file-input" multiple accept=".pdf,.txt,.md,.markdown,.log,.png,.jpg,.jpeg,.webp,.bmp,.gif" hidden>
+      </div>
+
+      <div class="upload-queue" id="upload-queue" hidden></div>
+
+      <div class="kb-list-head">
+        <span>已入库资料</span>
+        <span id="kb-list-count"></span>
+      </div>
+      <div class="doc-list" id="doc-list"></div>
+      <div class="doc-empty" id="doc-empty">
+        <svg class="icon"><use href="#i-book"></use></svg>
+        <span>还没有资料</span>
+        <small>上传第一份文档，开始构建知识库</small>
+      </div>
+      <div class="kb-foot"><svg class="icon"><use href="#i-shield"></use></svg><span>文件保存在本机 <code>data/</code>，不会上传到第三方存储。</span></div>
+    </aside>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <dialog class="modal" id="confirm-dialog">
+      <div class="modal-card confirm-card">
+        <div class="modal-icon danger"><svg class="icon"><use href="#i-trash"></use></svg></div>
+        <h3 id="confirm-title">确认操作</h3>
+        <p id="confirm-message"></p>
+        <div class="modal-actions">
+          <button class="ghost-btn" id="confirm-cancel" type="button">取消</button>
+          <button class="danger-btn" id="confirm-ok" type="button">确认</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="modal source-modal" id="source-dialog">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow" id="source-kicker">REFERENCE 01</p>
+            <h3 id="source-title">参考资料</h3>
+          </div>
+          <button class="icon-btn" id="source-close-icon" type="button" aria-label="关闭">
+            <svg class="icon"><use href="#i-close"></use></svg>
+          </button>
+        </div>
+        <div class="source-meta" id="source-meta"></div>
+        <div class="source-snippet" id="source-snippet"></div>
+        <div class="modal-actions">
+          <span class="source-hint"><svg class="icon"><use href="#i-info"></use></svg>引用内容仅供核对原文</span>
+          <button class="primary-btn" id="source-done" type="button">知道了</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="drag-overlay" id="drag-overlay" hidden>
+      <div class="drag-card">
+        <svg class="icon"><use href="#i-upload"></use></svg>
+        <strong>松开即可上传到知识库</strong>
+        <span>PDF · Markdown · TXT · 图片</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

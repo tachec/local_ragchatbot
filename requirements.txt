@@ -1,0 +1,35 @@
+# 知源 · 本地知识库问答助手 —— 完整依赖清单
+# 适用：Python 3.10 ~ 3.14（Windows / macOS / Linux）
+# 安装：python -m pip install -r requirements.txt
+#
+# 说明：版本下限按源码实际使用的 API 确定，上限用于避免未来大版本破坏兼容。
+# 仅列出项目直接 import 的第三方包；numpy / faiss-cpu / pyarrow / grpcio
+# 等由 milvus-lite、pymilvus 自动安装，无需在此重复声明。
+
+# ---------- Web 服务 ----------
+fastapi>=0.110,<1.0          # app.py：FastAPI / UploadFile / StaticFiles
+uvicorn>=0.27,<1.0           # app.py：uvicorn.run
+pydantic>=2.7,<3.0           # app.py：BaseModel / Field（直接导入，显式声明）
+python-multipart>=0.0.9      # app.py：multipart 文件上传（FastAPI 的 File 依赖）
+
+# ---------- 本地向量库 ----------
+pymilvus>=3.0.2,<4.0         # milvus.py：MilvusClient / AnnSearchRequest / Function / RRFRanker
+milvus-lite[chinese]>=3.2.2,<4.0  # 本地 .db 引擎；[chinese] 提供 jieba 中文分析器
+# 注意：Windows 上不要只装 pymilvus[milvus-lite]（该 extra 在 win32 上被排除），
+# 必须像上面这样显式安装 milvus-lite。
+
+# ---------- 大模型、向量与重排接口 ----------
+openai>=1.30,<4.0            # llm.py：OpenAI 兼容的聊天 / embedding / 视觉接口
+dashscope>=2.0.2,<3.0        # llm.py：dashscope.Client + rerank（2.0 起才提供 Client）
+httpx>=0.27,<1.0             # llm.py：多模态 embedding 的直连 HTTP 调用
+python-dotenv>=1.0,<2.0      # 各模块：load_dotenv（pymilvus 也要求 <2）
+
+# ---------- 文档解析与图片处理 ----------
+PyMuPDF>=1.24.3,<2.0         # kb.py：import pymupdf（1.24.3+ 提供该导入名）
+Pillow>=10.0                 # llm.py：GIF 首帧转 PNG（GIF 附件 / 图片入库需要）
+
+# ---------- 可选：mem0 长期记忆（.env 中 USE_MEM0=true 时） ----------
+# mem0ai>=2.0,<3.0           # storage.py：from mem0 import Memory
+# chromadb>=0.4.24           # storage.py 配置的 vector_store：provider="chroma"
+# 说明：mem0ai 2.x 默认不再捆绑 chromadb，需单独安装；不要安装
+# mem0ai[vector-stores]，它会拉入 pymilvus<2.6，与本项目的 pymilvus 3.x 冲突。
